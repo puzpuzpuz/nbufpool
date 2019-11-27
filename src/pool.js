@@ -39,7 +39,6 @@ class Pool {
   }
 
   #createPool = () => {
-    console.log('createPool: ' + this.#sourceBuf);
     this.#offset = 0;
     this.#sourceBuf = Buffer.allocUnsafeSlow(this.#size);
     this.#sourceBuf[fgSymbol] = new FinalizationGroup(this.#reclaim.bind(this));
