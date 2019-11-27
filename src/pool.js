@@ -1,24 +1,27 @@
 'use strict';
 
+const fgSymbol = Symbol('finalizationGroup');
+const sliceCountSymbol = Symbol('sliceCount');
+
 class Pool {
 
-  // static #reclaim(holdings) {
-  //   for (const file of holdings) {
-  //     console.error(`File leaked: ${file}!`);
-  //   }
-  // }
-
-  // static #finalizationGroup = new FinalizationGroup(this.#cleanUp);
+  #reclaim = (sourceBuf) => {
+    console.log('reclaimed: ' + sourceBuf);
+    sourceBuf[sliceCountSymbol] -= 1;
+    if (sourceBuf[sliceCountSymbol] > 0 || sourceBuf === this.#sourceBuf)
+      return;
+    sourceBuf[fgSymbol].unregister(sourceBuf);
+    this.#sourceBufPool.push(sourceBuf);
+  }
 
   #size;
   #offset;
   #sourceBuf;
+  #sourceBufPool = [];
 
   constructor(size) {
     this.#size = size;
     this.#createPool();
-    
-    // FileStream.#finalizationGroup.register(this, this.#file, this);
   }
 
   allocUnsafe = (size) => {
@@ -26,6 +29,8 @@ class Pool {
       if (size > (this.#size - this.#offset))
         this.#createPool();
       const slice = this.#sourceBuf.slice(this.#offset, this.#offset + size);
+      this.#sourceBuf[fgSymbol].register(slice, this.#sourceBuf, this.#sourceBuf);
+      this.#sourceBuf[sliceCountSymbol] += 1;
       this.#offset += size;
       this.#alignPool();
       return slice;
@@ -34,12 +39,15 @@ class Pool {
   }
 
   #createPool = () => {
-    this.#sourceBuf = Buffer.allocUnsafeSlow(this.#size);
+    console.log('createPool: ' + this.#sourceBuf);
     this.#offset = 0;
+    this.#sourceBuf = Buffer.allocUnsafeSlow(this.#size);
+    this.#sourceBuf[fgSymbol] = new FinalizationGroup(this.#reclaim.bind(this));
+    this.#sourceBuf[sliceCountSymbol] = 0;
   }
 
   #alignPool = () => {
-    // Ensure aligned slices
+    // ensure aligned slices
     if (this.#offset & 0x7) {
       this.#offset |= 0x7;
       this.#offset++;
