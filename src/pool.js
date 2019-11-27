@@ -5,47 +5,55 @@ const sliceCountSymbol = Symbol('sliceCount');
 
 class Pool {
 
-  #reclaim = (sourceBuf) => {
-    console.log('reclaimed: ' + sourceBuf);
-    sourceBuf[sliceCountSymbol] -= 1;
-    if (sourceBuf[sliceCountSymbol] > 0 || sourceBuf === this.#sourceBuf)
-      return;
-    sourceBuf[fgSymbol].unregister(sourceBuf);
-    this.#sourceBufPool.push(sourceBuf);
-  }
-
   #size;
+  #sourcePool = [];
+
+  #source;
   #offset;
-  #sourceBuf;
-  #sourceBufPool = [];
 
   constructor(size) {
     this.#size = size;
-    this.#createPool();
+    this.#createSource();
   }
 
   allocUnsafe = (size) => {
     if (size < (this.#size >>> 1)) {
       if (size > (this.#size - this.#offset))
-        this.#createPool();
-      const slice = this.#sourceBuf.slice(this.#offset, this.#offset + size);
-      this.#sourceBuf[fgSymbol].register(slice, this.#sourceBuf, this.#sourceBuf);
-      this.#sourceBuf[sliceCountSymbol] += 1;
+      this.#createSource();
+      const slice = this.#source.slice(this.#offset, this.#offset + size);
+      this.#source[fgSymbol].register(slice, this.#source, this.#source);
+      this.#source[sliceCountSymbol] += 1;
       this.#offset += size;
-      this.#alignPool();
+      this.#alignSource();
       return slice;
     }
     return Buffer.allocUnsafe(size);
   }
 
-  #createPool = () => {
+  #createSource = () => {
+    // TODO: is this brach reachable???
+    if (this.#source && this.#source[sliceCountSymbol] === 0) {
+      this.#source[fgSymbol].unregister(this.#source);
+      delete this.#source[fgSymbol];
+      this.#sourcePool.push(this.#source);
+    }
     this.#offset = 0;
-    this.#sourceBuf = Buffer.allocUnsafeSlow(this.#size);
-    this.#sourceBuf[fgSymbol] = new FinalizationGroup(this.#reclaim.bind(this));
-    this.#sourceBuf[sliceCountSymbol] = 0;
+    this.#source = this.#sourcePool.pop() || Buffer.allocUnsafeSlow(this.#size);
+    this.#source[fgSymbol] = new FinalizationGroup(this.#reclaim.bind(this));
+    this.#source[sliceCountSymbol] = 0;
   }
 
-  #alignPool = () => {
+  #reclaim = (sourceBuf) => {
+    console.log('reclaimed: ' + sourceBuf);
+    sourceBuf[sliceCountSymbol] -= 1;
+    if (sourceBuf[sliceCountSymbol] > 0 || sourceBuf === this.#source)
+      return;
+    sourceBuf[fgSymbol].unregister(sourceBuf);
+    delete sourceBuf[fgSymbol];
+    this.#sourcePool.push(sourceBuf);
+  }
+
+  #alignSource = () => {
     // ensure aligned slices
     if (this.#offset & 0x7) {
       this.#offset |= 0x7;
