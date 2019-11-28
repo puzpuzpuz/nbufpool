@@ -1,63 +1,66 @@
 'use strict';
 
-const fgSymbol = Symbol('finalizationGroup');
 const sliceCountSymbol = Symbol('sliceCount');
 
 class Pool {
 
-  #size;
-  #sourcePool = [];
+  _size;
+  _fg;
+  _sourcePool = [];
 
-  #source;
-  #offset;
+  _source;
+  _offset;
 
   constructor(size) {
-    this.#size = size;
-    this.#createSource();
+    this._size = size;
+    this._fg = new FinalizationGroup(this._finalize.bind(this));
+    this._createSource();
   }
 
   allocUnsafe = (size) => {
-    if (size < (this.#size >>> 1)) {
-      if (size > (this.#size - this.#offset))
-      this.#createSource();
-      const slice = this.#source.slice(this.#offset, this.#offset + size);
-      this.#source[fgSymbol].register(slice, this.#source, this.#source);
-      this.#source[sliceCountSymbol] += 1;
-      this.#offset += size;
-      this.#alignSource();
+    if (size < (this._size >>> 1)) {
+      if (size > (this._size - this._offset)) {
+        this._createSource();
+      }
+      const slice = this._source.slice(this._offset, this._offset + size);
+      this._source[sliceCountSymbol] += 1;
+      this._offset += size;
+      this._alignSource();
+      this._fg.register(slice, this._source, this._source);
       return slice;
     }
     return Buffer.allocUnsafe(size);
   }
 
-  #createSource = () => {
-    // TODO: is this brach reachable???
-    if (this.#source && this.#source[sliceCountSymbol] === 0) {
-      this.#source[fgSymbol].unregister(this.#source);
-      delete this.#source[fgSymbol];
-      this.#sourcePool.push(this.#source);
+  _createSource = () => {
+    // all slices may be already GCed
+    if (this._source && this._source[sliceCountSymbol] === 0) {
+      this._reclaim(this._source);
     }
-    this.#offset = 0;
-    this.#source = this.#sourcePool.pop() || Buffer.allocUnsafeSlow(this.#size);
-    this.#source[fgSymbol] = new FinalizationGroup(this.#reclaim.bind(this));
-    this.#source[sliceCountSymbol] = 0;
+    this._source = this._sourcePool.pop() || Buffer.allocUnsafeSlow(this._size);
+    this._source[sliceCountSymbol] = 0;
+    this._offset = 0;
   }
 
-  #reclaim = (sourceBuf) => {
-    console.log('reclaimed: ' + sourceBuf);
-    sourceBuf[sliceCountSymbol] -= 1;
-    if (sourceBuf[sliceCountSymbol] > 0 || sourceBuf === this.#source)
+  _finalize = (source) => {
+    console.log('finalized: ' + source);
+    source[sliceCountSymbol] -= 1;
+    if (source[sliceCountSymbol] > 0 || source === this._source) {
       return;
-    sourceBuf[fgSymbol].unregister(sourceBuf);
-    delete sourceBuf[fgSymbol];
-    this.#sourcePool.push(sourceBuf);
+    }
+    this._reclaim(source);
   }
 
-  #alignSource = () => {
+  _reclaim = (source) => {
+    this._fg.unregister(source);
+    this._sourcePool.push(source);
+  }
+
+  _alignSource = () => {
     // ensure aligned slices
-    if (this.#offset & 0x7) {
-      this.#offset |= 0x7;
-      this.#offset++;
+    if (this._offset & 0x7) {
+      this._offset |= 0x7;
+      this._offset++;
     }
   }
 
