@@ -13,7 +13,7 @@ class Pool {
 
   constructor(size) {
     this._size = size;
-    this._fg = new FinalizationGroup(this._finalize.bind(this));
+    this._fg = new FinalizationGroup(this._reclaim.bind(this));
     this._createSource();
   }
 
@@ -35,24 +35,22 @@ class Pool {
   _createSource = () => {
     // all slices may be already GCed
     if (this._source && this._source[sliceCountSymbol] === 0) {
-      this._reclaim(this._source);
+      this._sourcePool.push(this._source);
     }
     this._source = this._sourcePool.pop() || Buffer.allocUnsafeSlow(this._size);
     this._source[sliceCountSymbol] = 0;
     this._offset = 0;
   }
 
-  _finalize = (source) => {
-    console.log('finalized: ' + source);
-    source[sliceCountSymbol] -= 1;
-    if (source[sliceCountSymbol] > 0 || source === this._source) {
-      return;
+  _reclaim = (iter) => {
+    for (const source of iter) {
+      console.log('finalized: ' + source);
+      source[sliceCountSymbol] -= 1;
+      if (source[sliceCountSymbol] > 0 || source === this._source) {
+        continue;
+      }
+      this._sourcePool.push(source);
     }
-    this._reclaim(source);
-  }
-
-  _reclaim = (source) => {
-    this._sourcePool.push(source);
   }
 
   _alignSource = () => {
