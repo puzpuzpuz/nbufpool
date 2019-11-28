@@ -26,7 +26,7 @@ class Pool {
       this._source[sliceCountSymbol] += 1;
       this._offset += size;
       this._alignSource();
-      this._fg.register(slice, this._source, this._source);
+      this._fg.register(slice, this._source);
       return slice;
     }
     return Buffer.allocUnsafe(size);
@@ -52,7 +52,6 @@ class Pool {
   }
 
   _reclaim = (source) => {
-    this._fg.unregister(source);
     this._sourcePool.push(source);
   }
 
