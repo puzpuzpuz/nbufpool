@@ -1,6 +1,6 @@
 # nbufpool
 
-An experimental project: a Buffer pool for Node.js built on top of `FinalizationGroup` API.
+An experimental project: a Buffer pool for Node.js built on top of `FinalizationGroup` API. See [this issue](https://github.com/nodejs/node/issues/30683) for more details.
 
 ## Running
 
@@ -10,7 +10,11 @@ Run benchmark (requires Node.js v13):
 node --harmony-weak-refs --noincremental-marking benchmark/benchmark.js
 ```
 
+Note: `--noincremental-marking` flag can be removed once [this PR](https://github.com/nodejs/node/pull/30616) in node core is merged.
+
 ## Intermediate results
+
+TODO: include GC stats and allocation rate
 
 ```
 $ time node --harmony-weak-refs --noincremental-marking benchmark/benchmark.js with-pool
