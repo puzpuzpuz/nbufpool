@@ -44,7 +44,6 @@ class Pool {
 
   _reclaim = (iter) => {
     for (const source of iter) {
-      console.log('finalized: ' + source);
       source[sliceCountSymbol] -= 1;
       if (source[sliceCountSymbol] > 0 || source === this._source) {
         continue;
