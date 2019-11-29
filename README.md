@@ -7,7 +7,7 @@ An experimental project: a Buffer pool for Node.js built on top of `Finalization
 Run benchmark (requires Node.js v13):
 
 ```bash
-node --harmony-weak-refs --noincremental-marking benchmark/benchmark.js with-pool
+node --harmony-weak-refs --noincremental-marking benchmark/benchmark.js
 ```
 
 Note: `--noincremental-marking` flag can be removed once [this PR](https://github.com/nodejs/node/pull/30616) in node core is merged. If you use nightly builds of Node.js 13 or 14, this bug is already fixed there.
