@@ -11,17 +11,18 @@ let pool;
 let allocFn;
 
 const args = process.argv.slice(2);
-switch (args[0]) {
-  case 'with-pool':
-    pool = new Pool(poolSize);
-    allocFn = (size) => pool.allocUnsafe(size);
-    break;
-  case 'no-pool':
+const type = args[0] || 'pool-2mb';
+switch (type) {
+  case 'no-pool-2mb':
     Buffer.poolSize = poolSize;
     allocFn = (size) => Buffer.allocUnsafe(size);
     break;
+  case 'no-pool-def':
+    allocFn = (size) => Buffer.allocUnsafe(size);
+    break;
   default:
-    throw new Error('Benchmark type (with-pool/no-pool) is not specified');
+    pool = new Pool(poolSize);
+    allocFn = (size) => pool.allocUnsafe(size);
 }
 
 class Benchmark {
@@ -78,12 +79,13 @@ async function runAll() {
     const result = await benchmark.run();
     console.log(`Benchmark run finished: size=${allocSize}, time=${result.time}, rate=${result.rate}`);
     if (pool) {
-      pool.reset();
+      console.log('Pool stats: ', pool.stats());
+      pool = new Pool(poolSize);
     }
   }
 }
 
-console.log(`Starting benchmark: type=${args[0]}, pool size=${poolSize}, iterations=${iterations}, ops per iteration=${allocsPerIteration}`);
+console.log(`Starting benchmark: type=${type}, iterations=${iterations}, ops per iteration=${allocsPerIteration}`);
 runAll()
   .then(() => console.log('Benchmark finished'))
   .catch(console.error);

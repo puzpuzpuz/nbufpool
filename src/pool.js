@@ -11,6 +11,8 @@ class Pool {
   _source;
   _offset;
 
+  _reclaimedCnt = 0;
+
   constructor(size) {
     this._size = size;
     this._fg = new FinalizationGroup(this._reclaim.bind(this));
@@ -32,13 +34,15 @@ class Pool {
     return Buffer.allocUnsafe(size);
   }
 
-  reset = () => {
-    this._sourcePool = [];
-  }
+  stats = () => ({
+    reclaimedCnt: this._reclaimedCnt,
+    sourcePoolSize: this._sourcePool.length
+  })
 
   _createSource = () => {
     // all slices may be already GCed
     if (this._source && this._source[sliceCountSymbol] === 0) {
+      this._reclaimedCnt++;
       this._sourcePool.push(this._source);
     }
     this._source = this._sourcePool.pop() || Buffer.allocUnsafeSlow(this._size);
@@ -52,6 +56,7 @@ class Pool {
       if (source[sliceCountSymbol] > 0 || source === this._source) {
         continue;
       }
+      this._reclaimedCnt++;
       this._sourcePool.push(source);
     }
   }
