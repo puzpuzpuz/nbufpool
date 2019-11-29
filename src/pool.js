@@ -32,6 +32,10 @@ class Pool {
     return Buffer.allocUnsafe(size);
   }
 
+  reset = () => {
+    this._sourcePool = [];
+  }
+
   _createSource = () => {
     // all slices may be already GCed
     if (this._source && this._source[sliceCountSymbol] === 0) {

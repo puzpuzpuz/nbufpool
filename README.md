@@ -7,27 +7,29 @@ An experimental project: a Buffer pool for Node.js built on top of `Finalization
 Run benchmark (requires Node.js v13):
 
 ```bash
-node --harmony-weak-refs --noincremental-marking benchmark/benchmark.js
+node --harmony-weak-refs --noincremental-marking benchmark/benchmark.js with-pool
 ```
 
-Note: `--noincremental-marking` flag can be removed once [this PR](https://github.com/nodejs/node/pull/30616) in node core is merged.
+Note: `--noincremental-marking` flag can be removed once [this PR](https://github.com/nodejs/node/pull/30616) in node core is merged. If you use nightly builds of Node.js 13 or 14, this bug is already fixed there.
 
 ## Intermediate results
 
 TODO: include GC stats and allocation rate
 
 ```
-$ time node --harmony-weak-refs --noincremental-marking benchmark/benchmark.js with-pool
+Starting benchmark: type=with-pool, pool size=2097152, iterations=1024, ops per iteration=1024
+Benchmark run finished: size=8192, time=2.075979151, rate=505099.4849803287
+Benchmark run finished: size=32768, time=2.115390171, rate=495689.1709033094
+Benchmark run finished: size=131072, time=2.456131378, rate=426921.78822040197
+Benchmark run finished: size=524288, time=3.219062982, rate=325739.51049212494
+Benchmark finished
 
-real    0m15.260s
-user    0m3.835s
-sys     0m0.382s
-
-$ time node --harmony-weak-refs --noincremental-marking benchmark/benchmark.js no-pool
-
-real    0m17.834s
-user    0m24.639s
-sys     0m1.678s
+Starting benchmark: type=no-pool, pool size=2097152, iterations=1024, ops per iteration=1024
+Benchmark run finished: size=8192, time=1.641783013, rate=638681.2335717594
+Benchmark run finished: size=32768, time=2.101379434, rate=498994.1288251896
+Benchmark run finished: size=131072, time=1.845930029, rate=568047.5335070244
+Benchmark run finished: size=524288, time=7.756890636, rate=135179.93861271194
+Benchmark finished
 ```
 
 ## TODO
