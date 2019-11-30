@@ -7,6 +7,7 @@ class Pool {
   _size;
   _fg;
   _useFG;
+  _toBeReclaimedCnt = 0;
   _sourcePool = [];
 
   _source;
@@ -47,18 +48,14 @@ class Pool {
   })
 
   _createSource = () => {
-    // all slices may be already GCed
-    if (this._source && this._source[sliceCountSymbol] === 0) {
-      this._reclaimedCnt++;
-      this._sourcePool.push(this._source);
-    }
     const pooled = this._sourcePool.pop();
     if (pooled) {
       this._source = pooled;
       this._reusedCnt++;
-      // simplest feedback to avoid too many registrations
+      // simple feedback to avoid too many registrations
       // TODO: need to improve
-      this._useFG = this._sourcePool.length === 0;
+      // this._useFG = false;
+      this._useFG = this._sourcePool.length < this._toBeReclaimedCnt;
     } else {
       this._source = Buffer.allocUnsafeSlow(this._size);
       this._allocatedCnt++;
@@ -66,6 +63,9 @@ class Pool {
     }
     this._source[sliceCountSymbol] = 0;
     this._offset = 0;
+    if (this._useFG) {
+      this._toBeReclaimedCnt++;
+    }
   }
 
   _reclaim = (iter) => {
@@ -75,13 +75,14 @@ class Pool {
         continue;
       }
       this._reclaimedCnt++;
+      this._toBeReclaimedCnt--;
       this._sourcePool.push(source);
     }
   }
 
   _alignSource = () => {
     // ensure aligned slices
-    if (this._offset & 0x7) {
+    if ((this._offset & 0x7) !== 0) {
       this._offset |= 0x7;
       this._offset++;
     }
