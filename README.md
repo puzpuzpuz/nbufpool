@@ -16,34 +16,34 @@ Note: `--noincremental-marking` flag can be removed once [this PR](https://githu
 
 Results with v14 nightly:
 
-```
+```bash
 $ node --harmony-weak-refs benchmark/benchmark.js no-pool-2mb
 Starting benchmark: type=no-pool-2mb, iterations=1024, ops per iteration=1024
-Benchmark run finished: size=8192, time=1.627691246, rate=644210.6281377642
-Benchmark run finished: size=16384, time=1.824021953, rate=574870.2740531106
-Benchmark run finished: size=32768, time=2.029613017, rate=516638.3892974411
-Benchmark run finished: size=65536, time=1.438423182, rate=728976.0156270897
-Benchmark run finished: size=131072, time=1.937984933, rate=541065.0940287779
-Benchmark run finished: size=262144, time=3.819943513, rate=274500.3941632893
-Benchmark run finished: size=524288, time=7.852204501, rate=133539.05898228465
+Benchmark run finished: size=8192, time=2.409041662, rate=435266.8600714304
+Benchmark run finished: size=16384, time=2.785510972, rate=376439.371641434
+Benchmark run finished: size=32768, time=3.404762281, rate=307973.3365972401
+Benchmark run finished: size=65536, time=6.752141163, rate=155295.3314640291
+Benchmark run finished: size=131072, time=17.371312289, rate=60362.50932314352
+Benchmark run finished: size=262144, time=30.570405875, rate=34300.362392555246
+Benchmark run finished: size=524288, time=49.877348032, rate=21023.090468387796
 Benchmark finished
 
 $ node --harmony-weak-refs benchmark/benchmark.js
 Starting benchmark: type=pool-2mb, iterations=1024, ops per iteration=1024
-Benchmark run finished: size=8192, time=1.639885886, rate=639420.1016984666
-Pool stats:  { reclaimedCnt: 3724, reusedCnt: 3584, allocatedCnt: 512 }
-Benchmark run finished: size=16384, time=1.717398857, rate=610560.5554155787
-Pool stats:  { reclaimedCnt: 7712, reusedCnt: 7431, allocatedCnt: 761 }
-Benchmark run finished: size=32768, time=1.695830385, rate=618325.9890109823
-Pool stats:  { reclaimedCnt: 15536, reusedCnt: 15280, allocatedCnt: 1104 }
-Benchmark run finished: size=65536, time=1.725541465, rate=607679.398767737
-Pool stats:  { reclaimedCnt: 31936, reusedCnt: 31136, allocatedCnt: 1632 }
-Benchmark run finished: size=131072, time=1.852775423, rate=565948.7852565281
+Benchmark run finished: size=8192, time=2.770950225, rate=378417.4795128267
+Pool stats:  { reclaimedCnt: 3588, reusedCnt: 3588, allocatedCnt: 508 }
+Benchmark run finished: size=16384, time=3.12835608, rate=335184.3502418689
+Pool stats:  { reclaimedCnt: 7544, reusedCnt: 7472, allocatedCnt: 720 }
+Benchmark run finished: size=32768, time=3.76158312, rate=278759.22624833556
+Pool stats:  { reclaimedCnt: 15920, reusedCnt: 15296, allocatedCnt: 1088 }
+Benchmark run finished: size=65536, time=5.883032266, rate=178237.3362220142
+Pool stats:  { reclaimedCnt: 32736, reusedCnt: 31200, allocatedCnt: 1568 }
+Benchmark run finished: size=131072, time=10.397053491, rate=100853.18892585085
 Pool stats:  { reclaimedCnt: 63424, reusedCnt: 62656, allocatedCnt: 2880 }
-Benchmark run finished: size=262144, time=2.221213859, rate=472073.40965902014
-Pool stats:  { reclaimedCnt: 130560, reusedCnt: 125312, allocatedCnt: 5760 }
-Benchmark run finished: size=524288, time=2.875696729, rate=364633.72143022664
-Pool stats:  { reclaimedCnt: 259840, reusedCnt: 251648, allocatedCnt: 10496 }
+Benchmark run finished: size=262144, time=19.336539885, rate=54227.69565993632
+Pool stats:  { reclaimedCnt: 130688, reusedCnt: 125568, allocatedCnt: 5504 }
+Benchmark run finished: size=524288, time=37.138518921, rate=28234.190012544685
+Pool stats:  { reclaimedCnt: 261376, reusedCnt: 250880, allocatedCnt: 11264 }
 Benchmark finished
 ```
 

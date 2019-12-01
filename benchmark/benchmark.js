@@ -65,6 +65,7 @@ class Benchmark {
     this._slices = [];
     for (let i = 0; i < allocsPerIteration; i++) {
       const buf = this._allocFn(this._allocSize);
+      buf.fill('foo bar baz');
       this._slices.push(buf);
     }
     this._iteration++;
