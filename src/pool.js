@@ -45,7 +45,7 @@ class Pool {
   })
 
   _createSource = () => {
-    let source = this._sourcePool.pop();
+    let source = this._takeFromPool();
     if (source) {
       this._reusedCnt++;
     } else {
@@ -57,10 +57,21 @@ class Pool {
     this._offset = 0;
   }
 
+  _takeFromPool() {
+    while (this._sourcePool.length > 0) {
+      const ref = this._sourcePool.pop();
+      const source = ref ? ref.deref() : undefined;
+      if (source !== undefined) {
+        return source;
+      }
+    }
+    return null;
+  }
+
   _reclaim = (iter) => {
     for (const source of iter) {
       this._reclaimedCnt++;
-      this._sourcePool.push(source);
+      this._sourcePool.push(new WeakRef(source));
     }
   }
 

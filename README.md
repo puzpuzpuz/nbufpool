@@ -14,8 +14,6 @@ Note: `--noincremental-marking` flag can be removed once [this PR](https://githu
 
 ## Intermediate results
 
-TODO: include GC stats and allocation rate
-
 Results with v14 nightly:
 
 ```
@@ -84,7 +82,7 @@ Benchmark finished
 
 ## TODO
 
-* Compare allocation rate and execution time with `Buffer.allocUnsafe`
-* Implement shrinking on idle for source pool
-* Expose metrics (source pool size, total allocated cnt/size, reclaimed cnt/size)
-* Experiment with different allocation sizes and implement a threshold for fallback to `Buffer.allocUnsafe` for small buffers, if necessary
+* Compare GC stats, allocation rate and execution time with `Buffer.allocUnsafe` => Partially done (see results section; GC stats and allocation rate comparison is TBD)
+* Implement shrinking on idle for source pool => Partially implemented via weak refs, yet the pool may hold an array of empty refs
+* Expose metrics (source pool size, total allocated cnt, reclaimed cnt) => Done
+* Experiment with different allocation sizes and implement a threshold for fallback to `Buffer.allocUnsafe` for small buffers, if necessary => Done. No need for that with current implementation, as FG tracks source buffers now
