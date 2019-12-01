@@ -52,10 +52,10 @@ class Pool {
     if (pooled) {
       this._source = pooled;
       this._reusedCnt++;
-      // simple feedback to avoid too many registrations
-      // TODO: need to improve
-      // this._useFG = false;
-      this._useFG = this._sourcePool.length < this._toBeReclaimedCnt;
+      // no throttling
+      this._useFG = true;
+      // throttling:
+      // this._useFG = this._sourcePool.length < this._toBeReclaimedCnt;
     } else {
       this._source = Buffer.allocUnsafeSlow(this._size);
       this._allocatedCnt++;
