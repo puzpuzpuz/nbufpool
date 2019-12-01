@@ -2,7 +2,8 @@
 
 const Pool = require('../src/pool');
 
-const poolSize = 2 * 1024 * 1024;
+const sourceSize = 2 * 1024 * 1024;
+const poolSize = 100;
 const allocSizes = [8 * 1024, 16 * 1024, 32 * 1024, 64 * 1024, 128 * 1024, 256 * 1024, 512 * 1024];
 const allocsPerIteration = 1024;
 const iterations = 1024;
@@ -14,14 +15,14 @@ const args = process.argv.slice(2);
 const type = args[0] || 'pool-2mb';
 switch (type) {
   case 'no-pool-2mb':
-    Buffer.poolSize = poolSize;
+    Buffer.poolSize = sourceSize;
     allocFn = (size) => Buffer.allocUnsafe(size);
     break;
   case 'no-pool-def':
     allocFn = (size) => Buffer.allocUnsafe(size);
     break;
   default:
-    pool = new Pool(poolSize);
+    pool = new Pool(sourceSize, poolSize);
     allocFn = (size) => pool.allocUnsafe(size);
 }
 
@@ -81,7 +82,7 @@ async function runAll() {
     console.log(`Benchmark run finished: size=${allocSize}, time=${result.time}, rate=${result.rate}`);
     if (pool) {
       console.log('Pool stats: ', pool.stats());
-      pool = new Pool(poolSize);
+      pool = new Pool(sourceSize);
     }
   }
 }
