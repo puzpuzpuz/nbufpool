@@ -1,16 +1,14 @@
 'use strict';
 
-const sliceCountSymbol = Symbol('sliceCount');
+const rootSliceSymbol = Symbol('rootSlice');
 
 class Pool {
 
   _size;
   _fg;
-  _useFG;
-  _toBeReclaimedCnt = 0;
   _sourcePool = [];
 
-  _source;
+  _rootSlice;
   _offset;
 
   _reclaimedCnt = 0;
@@ -28,16 +26,15 @@ class Pool {
       if (size > (this._size - this._offset)) {
         this._createSource();
       }
-      const slice = this._source.slice(this._offset, this._offset + size);
-      this._source[sliceCountSymbol] += 1;
+      const slice = this._rootSlice.slice(this._offset, this._offset + size);
+      // keep strong reference to root slice to ensure
+      // that it gets GCed only when the last slice is GCed
+      slice[rootSliceSymbol] = this._rootSlice;
       this._offset += size;
       this._alignSource();
-      if (this._useFG) {
-        this._fg.register(slice, this._source);
-      }
       return slice;
     }
-    return Buffer.allocUnsafe(size);
+    return Buffer.allocUnsafeSlow(size);
   }
 
   stats = () => ({
@@ -48,34 +45,21 @@ class Pool {
   })
 
   _createSource = () => {
-    const pooled = this._sourcePool.pop();
-    if (pooled) {
-      this._source = pooled;
+    let source = this._sourcePool.pop();
+    if (source) {
       this._reusedCnt++;
-      // no throttling
-      this._useFG = true;
-      // throttling:
-      // this._useFG = this._sourcePool.length < this._toBeReclaimedCnt;
     } else {
-      this._source = Buffer.allocUnsafeSlow(this._size);
+      source = Buffer.allocUnsafeSlow(this._size);
       this._allocatedCnt++;
-      this._useFG = true;
     }
-    this._source[sliceCountSymbol] = 0;
+    this._rootSlice = source.slice();
+    this._fg.register(this._rootSlice, source);
     this._offset = 0;
-    if (this._useFG) {
-      this._toBeReclaimedCnt++;
-    }
   }
 
   _reclaim = (iter) => {
     for (const source of iter) {
-      source[sliceCountSymbol] -= 1;
-      if (source[sliceCountSymbol] > 0 || source === this._source) {
-        continue;
-      }
       this._reclaimedCnt++;
-      this._toBeReclaimedCnt--;
       this._sourcePool.push(source);
     }
   }
