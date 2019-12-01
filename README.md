@@ -1,6 +1,6 @@
 # nbufpool
 
-An experimental project: a Buffer pool for Node.js built on top of `FinalizationGroup` API. See [this issue](https://github.com/nodejs/node/issues/30683) for more details.
+An experimental project: a Buffer pool for Node.js built on top of `WeakRef` and `FinalizationGroup` APIs. See [this issue](https://github.com/nodejs/node/issues/30683) for more details.
 
 ## Running
 
@@ -17,72 +17,43 @@ Note: `--noincremental-marking` flag can be removed once [this PR](https://githu
 Results with v14 nightly:
 
 ```
+$ node --harmony-weak-refs benchmark/benchmark.js no-pool-2mb
 Starting benchmark: type=no-pool-2mb, iterations=1024, ops per iteration=1024
-Benchmark run finished: size=8192, time=1.6304374080000001, rate=643125.5777468029
-Benchmark run finished: size=16384, time=1.723873866, rate=608267.2408237553
-Benchmark run finished: size=32768, time=1.750619311, rate=598974.3134965338
-Benchmark run finished: size=65536, time=1.145353899, rate=915503.9336885341
-Benchmark run finished: size=131072, time=1.9197706079999999, rate=546198.5904099226
-Benchmark run finished: size=262144, time=3.887365281, rate=269739.508433913
-Benchmark run finished: size=524288, time=7.738465996, rate=135501.7907350122
+Benchmark run finished: size=8192, time=1.627691246, rate=644210.6281377642
+Benchmark run finished: size=16384, time=1.824021953, rate=574870.2740531106
+Benchmark run finished: size=32768, time=2.029613017, rate=516638.3892974411
+Benchmark run finished: size=65536, time=1.438423182, rate=728976.0156270897
+Benchmark run finished: size=131072, time=1.937984933, rate=541065.0940287779
+Benchmark run finished: size=262144, time=3.819943513, rate=274500.3941632893
+Benchmark run finished: size=524288, time=7.852204501, rate=133539.05898228465
 Benchmark finished
 
+$ node --harmony-weak-refs benchmark/benchmark.js
 Starting benchmark: type=pool-2mb, iterations=1024, ops per iteration=1024
-Benchmark run finished: size=8192, time=1.6481132569999999, rate=636228.1205775168
-Pool stats:  {
-  reclaimedCnt: 3736,
-  reusedCnt: 3584,
-  allocatedCnt: 512,
-  sourcePoolSize: 152
-}
-Benchmark run finished: size=16384, time=1.677368811, rate=625131.4517854118
-Pool stats:  {
-  reclaimedCnt: 7792,
-  reusedCnt: 7424,
-  allocatedCnt: 768,
-  sourcePoolSize: 368
-}
-Benchmark run finished: size=32768, time=1.674900904, rate=626052.5607788436
-Pool stats:  {
-  reclaimedCnt: 15584,
-  reusedCnt: 15280,
-  allocatedCnt: 1104,
-  sourcePoolSize: 304
-}
-Benchmark run finished: size=65536, time=1.66275752, rate=630624.7227196422
-Pool stats:  {
-  reclaimedCnt: 31840,
-  reusedCnt: 31136,
-  allocatedCnt: 1632,
-  sourcePoolSize: 704
-}
-Benchmark run finished: size=131072, time=1.874655374, rate=559343.3409377141
-Pool stats:  {
-  reclaimedCnt: 63488,
-  reusedCnt: 62656,
-  allocatedCnt: 2880,
-  sourcePoolSize: 832
-}
-Benchmark run finished: size=262144, time=2.197768472, rate=477109.40135827014
-Pool stats:  {
-  reclaimedCnt: 128256,
-  reusedCnt: 125440,
-  allocatedCnt: 5632,
-  sourcePoolSize: 2816
-}
-Benchmark run finished: size=524288, time=2.751443021, rate=381100.38695945794
-Pool stats:  {
-  reclaimedCnt: 252416,
-  reusedCnt: 251648,
-  allocatedCnt: 10496,
-  sourcePoolSize: 768
-}
+Benchmark run finished: size=8192, time=1.639885886, rate=639420.1016984666
+Pool stats:  { reclaimedCnt: 3724, reusedCnt: 3584, allocatedCnt: 512 }
+Benchmark run finished: size=16384, time=1.717398857, rate=610560.5554155787
+Pool stats:  { reclaimedCnt: 7712, reusedCnt: 7431, allocatedCnt: 761 }
+Benchmark run finished: size=32768, time=1.695830385, rate=618325.9890109823
+Pool stats:  { reclaimedCnt: 15536, reusedCnt: 15280, allocatedCnt: 1104 }
+Benchmark run finished: size=65536, time=1.725541465, rate=607679.398767737
+Pool stats:  { reclaimedCnt: 31936, reusedCnt: 31136, allocatedCnt: 1632 }
+Benchmark run finished: size=131072, time=1.852775423, rate=565948.7852565281
+Pool stats:  { reclaimedCnt: 63424, reusedCnt: 62656, allocatedCnt: 2880 }
+Benchmark run finished: size=262144, time=2.221213859, rate=472073.40965902014
+Pool stats:  { reclaimedCnt: 130560, reusedCnt: 125312, allocatedCnt: 5760 }
+Benchmark run finished: size=524288, time=2.875696729, rate=364633.72143022664
+Pool stats:  { reclaimedCnt: 259840, reusedCnt: 251648, allocatedCnt: 10496 }
 Benchmark finished
 ```
 
 ## TODO
 
-* Compare GC stats, allocation rate and execution time with `Buffer.allocUnsafe` => Partially done (see results section; GC stats and allocation rate comparison is TBD)
-* Implement shrinking on idle for source pool => Partially implemented via weak refs, yet the pool may hold an array of empty refs
-* Expose metrics (source pool size, total allocated cnt, reclaimed cnt) => Done
-* Experiment with different allocation sizes and implement a threshold for fallback to `Buffer.allocUnsafe` for small buffers, if necessary => Done. No need for that with current implementation, as FG tracks source buffers now
+* Compare GC stats, allocation rate and execution time with `Buffer.allocUnsafe`
+  - Partially done (see results section; GC stats and allocation rate comparison is TBD)
+* Implement shrinking on idle for source pool
+  - Done. Implemented via single weak ref for the array of reclaimed buffers
+* Expose metrics (total allocated cnt, reclaimed, cnt reused cnt)
+  - Done
+* Experiment with different allocation sizes and implement a threshold for fallback to `Buffer.allocUnsafe` for small buffers, if necessary
+  - Done. No need for that with current implementation, as FG tracks source buffers now

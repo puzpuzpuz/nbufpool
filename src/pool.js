@@ -6,7 +6,7 @@ class Pool {
 
   _size;
   _fg;
-  _sourcePool = [];
+  _sourcePoolRef = new WeakRef([]);
 
   _rootSlice;
   _offset;
@@ -40,8 +40,7 @@ class Pool {
   stats = () => ({
     reclaimedCnt: this._reclaimedCnt,
     reusedCnt: this._reusedCnt,
-    allocatedCnt: this._allocatedCnt,
-    sourcePoolSize: this._sourcePool.length
+    allocatedCnt: this._allocatedCnt
   })
 
   _createSource = () => {
@@ -58,20 +57,19 @@ class Pool {
   }
 
   _takeFromPool() {
-    while (this._sourcePool.length > 0) {
-      const ref = this._sourcePool.pop();
-      const source = ref ? ref.deref() : undefined;
-      if (source !== undefined) {
-        return source;
-      }
+    const sourcePool = this._sourcePoolRef.deref();
+    if (sourcePool === undefined) {
+      return undefined;
     }
-    return null;
+    return sourcePool.pop();
   }
 
   _reclaim = (iter) => {
+    const sourcePool = this._sourcePoolRef.deref() || [];
+    this._sourcePoolRef = new WeakRef(sourcePool);
     for (const source of iter) {
       this._reclaimedCnt++;
-      this._sourcePool.push(new WeakRef(source));
+      sourcePool.push(source);
     }
   }
 
