@@ -1,5 +1,14 @@
 'use strict';
 
+const validateSize = (size) => {
+  if (typeof size !== 'number') {
+    throw new TypeError(`Size is supposed to be number: ${size}`);
+  }
+  if (size < 0) {
+    throw new RangeError(`Invalid size: ${size}`);
+  }
+}
+
 class Pool {
 
   _size;
@@ -7,13 +16,13 @@ class Pool {
   _source;
 
   constructor(size) {
-    // TODO validate size
+    validateSize(size);
     this._size = size;
     this._createSource();
   }
 
   allocUnsafe = (size) => {
-    // TODO validate size
+    validateSize(size);
     if (size < (this._size >>> 1)) {
       if (size > (this._size - this._offset)) {
         this._createSource();
