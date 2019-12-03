@@ -1,37 +1,33 @@
 'use strict';
 
-const rootSliceSymbol = Symbol('rootSlice');
+const validateSize = (size) => {
+  if (typeof size !== 'number') {
+    throw new TypeError(`Size is supposed to be number: ${size}`);
+  }
+  if (size < 0) {
+    throw new RangeError(`Invalid size: ${size}`);
+  }
+}
 
 class Pool {
 
-  _sourceSize;
-  _poolSize;
-  _fg;
-  _sourcePoolRef = new WeakRef([]);
-
-  _rootSlice;
+  _size;
   _offset;
+  _source;
 
-  _reclaimedCnt = 0;
-  _reusedCnt = 0;
-  _allocatedCnt = 0;
-
-  constructor(sourceSize, poolSize) {
-    this._sourceSize = sourceSize;
-    this._poolSize = poolSize;
-    this._fg = new FinalizationGroup(this._reclaim.bind(this));
+  constructor(size) {
+    validateSize(size);
+    this._size = size;
     this._createSource();
   }
 
   allocUnsafe = (size) => {
-    if (size < (this._sourceSize >>> 1)) {
-      if (size > (this._sourceSize - this._offset)) {
+    validateSize(size);
+    if (size < (this._size >>> 1)) {
+      if (size > (this._size - this._offset)) {
         this._createSource();
       }
-      const slice = this._rootSlice.slice(this._offset, this._offset + size);
-      // keep strong reference to root slice to ensure
-      // that it gets GCed only when the last slice is GCed
-      slice[rootSliceSymbol] = this._rootSlice;
+      const slice = this._source.slice(this._offset, this._offset + size);
       this._offset += size;
       this._alignSource();
       return slice;
@@ -39,43 +35,9 @@ class Pool {
     return Buffer.allocUnsafeSlow(size);
   }
 
-  stats = () => ({
-    reclaimedCnt: this._reclaimedCnt,
-    reusedCnt: this._reusedCnt,
-    allocatedCnt: this._allocatedCnt
-  })
-
   _createSource = () => {
-    let source = this._takeFromPool();
-    if (source) {
-      this._reusedCnt++;
-    } else {
-      source = Buffer.allocUnsafeSlow(this._sourceSize);
-      this._allocatedCnt++;
-    }
-    this._rootSlice = source.slice();
-    this._fg.register(this._rootSlice, source);
+    this._source = Buffer.allocUnsafeSlow(this._size);
     this._offset = 0;
-  }
-
-  _takeFromPool() {
-    const sourcePool = this._sourcePoolRef.deref();
-    if (sourcePool === undefined) {
-      return undefined;
-    }
-    return sourcePool.pop();
-  }
-
-  _reclaim = (iter) => {
-    const sourcePool = this._sourcePoolRef.deref() || [];
-    this._sourcePoolRef = new WeakRef(sourcePool);
-    for (const source of iter) {
-      if (sourcePool.length >= this._poolSize) {
-        return;
-      }
-      this._reclaimedCnt++;
-      sourcePool.push(source);
-    }
   }
 
   _alignSource = () => {
