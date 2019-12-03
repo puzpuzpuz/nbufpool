@@ -1,6 +1,6 @@
 'use strict';
 
-const Pool = require('../src/pool');
+const Pool = require('../');
 
 const size = 2 * 1024 * 1024;
 const allocSizes = [64, 1024, 100 * 1024];

@@ -1,6 +1,6 @@
 # nbufpool
 
-Note: for experimental implementation see [this branch](https://github.com/puzpuzpuz/nbufpool/tree/experiment/fg-api-based-pool).
+Note: for experimental implementation based on FinalizationGroup API see [this branch](https://github.com/puzpuzpuz/nbufpool/tree/experiment/fg-api-based-pool).
 
 An unsafe Buffer pool for Node.js: a port of `Buffer.allocUnsafe`. See [this issue](https://github.com/nodejs/node/issues/30611) to understand why and when it might be helpful.
 
