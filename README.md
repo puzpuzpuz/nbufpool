@@ -1,59 +1,29 @@
 # nbufpool
 
-An experimental project: a Buffer pool for Node.js built on top of `WeakRef` and `FinalizationGroup` APIs. See [this issue](https://github.com/nodejs/node/issues/30683) for more details.
+Note: for experimental implementation see [this branch](https://github.com/puzpuzpuz/nbufpool/tree/experiment/fg-api-based-pool).
 
-## Running
+An unsafe Buffer pool for Node.js: a port of `Buffer.allocUnsafe`. See [this issue](https://github.com/nodejs/node/issues/30611) to understand why and when it might be helpful.
 
-Run benchmark (requires Node.js v13):
+## Benchmark results
 
-```bash
-node --harmony-weak-refs --noincremental-marking benchmark/benchmark.js
-```
-
-Note: `--noincremental-marking` flag can be removed once [this PR](https://github.com/nodejs/node/pull/30616) in node core is merged. If you use nightly builds of Node.js 13 or 14, this bug is already fixed there.
-
-## Intermediate results
-
-Results with v14 nightly:
+Results of running a (really-really unfare) benchmark on node 13.2.0:
 
 ```bash
-$ node --harmony-weak-refs benchmark/benchmark.js no-pool-2mb
-Starting benchmark: type=no-pool-2mb, iterations=1024, ops per iteration=1024
-Benchmark run finished: size=8192, time=2.409041662, rate=435266.8600714304
-Benchmark run finished: size=16384, time=2.785510972, rate=376439.371641434
-Benchmark run finished: size=32768, time=3.404762281, rate=307973.3365972401
-Benchmark run finished: size=65536, time=6.752141163, rate=155295.3314640291
-Benchmark run finished: size=131072, time=17.371312289, rate=60362.50932314352
-Benchmark run finished: size=262144, time=30.570405875, rate=34300.362392555246
-Benchmark run finished: size=524288, time=49.877348032, rate=21023.090468387796
+$ node benchmark/benchmark.js no-pool-def
+Starting benchmark: type=no-pool-def, iterations=10000, ops per iteration=1024
+Benchmark run finished: size=64, time=0.476678138, rate=21482000.502401896
+Benchmark run finished: size=1024, time=1.906225462, rate=5371872.427543935
+Benchmark run finished: size=102400, time=26.776787035, rate=382420.7880734635
 Benchmark finished
 
-$ node --harmony-weak-refs benchmark/benchmark.js
-Starting benchmark: type=pool-2mb, iterations=1024, ops per iteration=1024
-Benchmark run finished: size=8192, time=2.770950225, rate=378417.4795128267
-Pool stats:  { reclaimedCnt: 3588, reusedCnt: 3588, allocatedCnt: 508 }
-Benchmark run finished: size=16384, time=3.12835608, rate=335184.3502418689
-Pool stats:  { reclaimedCnt: 7544, reusedCnt: 7472, allocatedCnt: 720 }
-Benchmark run finished: size=32768, time=3.76158312, rate=278759.22624833556
-Pool stats:  { reclaimedCnt: 15920, reusedCnt: 15296, allocatedCnt: 1088 }
-Benchmark run finished: size=65536, time=5.883032266, rate=178237.3362220142
-Pool stats:  { reclaimedCnt: 32736, reusedCnt: 31200, allocatedCnt: 1568 }
-Benchmark run finished: size=131072, time=10.397053491, rate=100853.18892585085
-Pool stats:  { reclaimedCnt: 63424, reusedCnt: 62656, allocatedCnt: 2880 }
-Benchmark run finished: size=262144, time=19.336539885, rate=54227.69565993632
-Pool stats:  { reclaimedCnt: 130688, reusedCnt: 125568, allocatedCnt: 5504 }
-Benchmark run finished: size=524288, time=37.138518921, rate=28234.190012544685
-Pool stats:  { reclaimedCnt: 261376, reusedCnt: 250880, allocatedCnt: 11264 }
+$ node benchmark/benchmark.js
+Starting benchmark: type=pool-2mb, iterations=10000, ops per iteration=1024
+Benchmark run finished: size=64, time=0.435040738, rate=23538025.535438478
+Benchmark run finished: size=1024, time=0.420123883, rate=24373763.10739278
+Benchmark run finished: size=102400, time=13.388494122, rate=764835.8289356539
 Benchmark finished
 ```
 
-## TODO
+## Credits
 
-* Compare GC stats, allocation rate and execution time with `Buffer.allocUnsafe`
-  - Partially done (see results section; GC stats and allocation rate comparison is TBD)
-* Implement shrinking on idle for source pool
-  - Done. Implemented via single weak ref for the array of reclaimed buffers
-* Expose metrics (total allocated cnt, reclaimed, cnt reused cnt)
-  - Done
-* Experiment with different allocation sizes and implement a threshold for fallback to `Buffer.allocUnsafe` for small buffers, if necessary
-  - Done. No need for that with current implementation, as FG tracks source buffers now
+The design is inspired by standard `Buffer.allocUnsafe` from [Node.js](https://github.com/nodejs/node).
