@@ -1,3 +1,7 @@
+[![travis](https://travis-ci.org/puzpuzpuz/nbufpool.svg?branch=master)](https://travis-ci.org/puzpuzpuz/nbufpool.svg?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/puzpuzpuz/nbufpool/badge.svg?branch=master)](https://coveralls.io/github/puzpuzpuz/nbufpool?branch=master)
+[![npm](https://img.shields.io/npm/v/nbufpool.svg)](https://www.npmjs.com/package/nbufpool)
+
 # nbufpool
 
 Note: for experimental implementation based on FinalizationGroup API see [this branch](https://github.com/puzpuzpuz/nbufpool/tree/experiment/fg-api-based-pool).
