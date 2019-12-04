@@ -4,6 +4,24 @@ Note: for experimental implementation based on FinalizationGroup API see [this b
 
 An unsafe Buffer pool for Node.js: a port of `Buffer.allocUnsafe`. See [this issue](https://github.com/nodejs/node/issues/30611) to understand why and when it might be helpful.
 
+## Usage
+
+Using this library as easy as the following two steps.
+
+Step 1. Install it:
+```bash
+npm install --save nbufpool
+```
+
+Step 2. Write some code:
+```javascript
+const Pool = require('nbufpool');
+// create pool
+const pool = new Pool(2048); // 2MB
+// allocate buffers, where necessary
+const buf = pool.allocUnsafe(128); // 128B
+```
+
 ## Benchmark results
 
 Results of running a (really-really unfare) benchmark on node 13.2.0:
