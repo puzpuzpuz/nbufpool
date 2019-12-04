@@ -12,6 +12,7 @@ export class Pool {
   
     /**
      * Allocates a new buffer with the given size.
+     * Behavior of this method is the same as for `Buffer.allocUnsafe`.
      * 
      * @param size  buffer size
      * @returns     allocated buffer

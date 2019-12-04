@@ -4,8 +4,12 @@
   "description": "An unsafe Buffer pool for Node.js",
   "main": "index.js",
   "engines": {
-    "node": ">=8.0.0"
+    "node": ">=6.0.0"
   },
+  "files": [
+    "index.js",
+    "index.d.ts"
+  ],
   "scripts": {
     "test": "jest",
     "lint": "standard",
