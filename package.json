@@ -13,7 +13,8 @@
   "scripts": {
     "test": "jest",
     "lint": "standard",
-    "test-ci": "npm run lint && npm run test"
+    "test-ci": "npm run lint && npm run test",
+    "cover": "jest --coverage --coverageReporters=text-lcov | coveralls"
   },
   "repository": {
     "type": "git",
@@ -31,6 +32,7 @@
   },
   "homepage": "https://github.com/puzpuzpuz/nbufpool#readme",
   "devDependencies": {
+    "coveralls": "^3.0.9",
     "jest": "^24.9.0",
     "standard": "^14.3.1"
   }

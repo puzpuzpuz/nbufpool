@@ -24,21 +24,21 @@ const buf = pool.allocUnsafe(128); // 128B
 
 ## Benchmark results
 
-Results of running a (really-really unfare) benchmark on node 13.2.0:
+Results of running a (really-really unfare) benchmark on node 12.13.1:
 
 ```bash
 $ node benchmark/benchmark.js no-pool-def
 Starting benchmark: type=no-pool-def, iterations=10000, ops per iteration=1024
-Benchmark run finished: size=64, time=0.476678138, rate=21482000.502401896
-Benchmark run finished: size=1024, time=1.906225462, rate=5371872.427543935
-Benchmark run finished: size=102400, time=26.776787035, rate=382420.7880734635
+Benchmark run finished: size=64, time=0.431686369, rate=23720925.040373467
+Benchmark run finished: size=1024, time=1.241307049, rate=8249369.089017394
+Benchmark run finished: size=102400, time=17.648105453, rate=580232.2536699997
 Benchmark finished
 
 $ node benchmark/benchmark.js
 Starting benchmark: type=pool-2mb, iterations=10000, ops per iteration=1024
-Benchmark run finished: size=64, time=0.435040738, rate=23538025.535438478
-Benchmark run finished: size=1024, time=0.420123883, rate=24373763.10739278
-Benchmark run finished: size=102400, time=13.388494122, rate=764835.8289356539
+Benchmark run finished: size=64, time=0.364428314, rate=28098804.63898313
+Benchmark run finished: size=1024, time=0.328781967, rate=31145260.469835926
+Benchmark run finished: size=102400, time=12.503404789, rate=818976.924510094
 Benchmark finished
 ```
 
