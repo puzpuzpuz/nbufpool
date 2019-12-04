@@ -28,7 +28,7 @@ const buf = pool.allocUnsafe(128); // 128B
 
 ## Benchmark results
 
-Results of running a (really-really unfare) benchmark on node 12.13.1:
+Results of running a (really-really unfair) benchmark on node 12.13.1:
 
 ```bash
 $ node benchmark/benchmark.js no-pool-def
@@ -48,4 +48,4 @@ Benchmark finished
 
 ## Credits
 
-The design is inspired by standard `Buffer.allocUnsafe` from [Node.js](https://github.com/nodejs/node).
+The design is inspired by standard `Buffer.allocUnsafe` API from [Node.js](https://github.com/nodejs/node).
