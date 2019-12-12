@@ -71,7 +71,7 @@ class Pool {
     this._sourcePoolRef = new WeakRef(sourcePool);
     for (const source of iter) {
       if (sourcePool.length >= this._poolSize) {
-        return;
+        continue;
       }
       this._reclaimedCnt++;
       sourcePool.push(source);
